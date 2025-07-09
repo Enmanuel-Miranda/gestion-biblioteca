@@ -1,9 +1,11 @@
 package Project;
 
 import Models.Book;
+import Models.RegistrarPrestamo;
 import Repositories.ArrayBookRepository;
 import Repositories.ArrayListBookRepository;
 import Repositories.BookRepository;
+import services.HistorialPrestamo;
 import services.LoanManager;
 import exceptions.LibraryException;
 
@@ -17,7 +19,8 @@ public class App {
         //BookRepository bookRepository = new ArrayListBookRepository(); 
         BookRepository bookRepository = new ArrayBookRepository(); 
 
-        LoanManager loanManager = new LoanManager(bookRepository);
+        HistorialPrestamo historialManager = new HistorialPrestamo(); // ¡Aquí está el cambio! Ya no se pasa un repositorio
+        LoanManager loanManager = new LoanManager(bookRepository, historialManager);
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Gestión de Biblioteca ***************************************");
@@ -40,6 +43,7 @@ public class App {
             System.out.println("3. Devolver un libro");
             System.out.println("4. Añadir un nuevo libro");
             System.out.println("5. Eliminar un libro");
+            System.out.println("6. Ver historial de prestamos"); //se añadio esto de aqui
             System.out.println("0. Salir");
             System.out.print("Seleccione una opción: ");
 
@@ -95,6 +99,21 @@ public class App {
                         } catch (LibraryException e) {
                             System.err.println("Error al eliminar libro: " + e.getMessage());
                         }
+                        break;
+                    case 6: //ver el historial
+                        System.out.print("Historial de prstamos");
+                        List<RegistrarPrestamo> prestamoRegistrado = historialManager.ObtenerPrestamos();
+                        
+                        if(prestamoRegistrado.isEmpty()){
+                        System.out.println("No hay prestamos");
+                        }else {
+                        for (RegistrarPrestamo rp : prestamoRegistrado ){
+                        	System.out.println(rp);
+                        }
+                        }
+                        
+                        
+                        
                         break;
                     case 0:
                         System.out.println("Saliendo del sistema. ¡Hasta pronto!");
