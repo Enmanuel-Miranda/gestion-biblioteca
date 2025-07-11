@@ -16,13 +16,12 @@ public class App {
         //BookRepository bookRepository = new ArrayListBookRepository(); 
         BookRepository bookRepository = new ArrayBookRepository();
         UserRepository userRepository = new ArrayListUserRepository();
-
-
         LoanManager loanManager = new LoanManager(bookRepository);
         Scanner scanner = new Scanner(System.in);
 
         //añadimos unos libros y usuarios
         insertarDatos(bookRepository,userRepository);
+
 
         System.out.println("Gestión de Biblioteca ***************************************");
         int option;
@@ -47,7 +46,7 @@ public class App {
                         System.out.print("Ingrese el ISBN del libro a prestar: ");
                         String isbnToBorrow = scanner.nextLine();
                         try {
-                            loanManager.borrowBook(isbnToBorrow);
+                            loanManager.borrowBook(isbnToBorrow,new User("sdad","safsf"));
                             System.out.println("Libro con ISBN " + isbnToBorrow + " prestado exitosamente.");
                         } catch (LibraryException e) {
                             System.err.println("Error al prestar libro: " + e.getMessage());
