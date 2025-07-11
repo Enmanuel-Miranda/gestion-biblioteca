@@ -33,12 +33,14 @@ public class LoanManager {
         book.setDisponibilidad(false);
     }
 
-    public void returnBook(String isbn) throws LibraryException {
+    public void returnBook(String isbn, User usuario) throws LibraryException {
+
         Book book = bookRepository.findBook(isbn);
 
         if (book.getDisponibilidad()) {
             throw new LibraryException("El libro con ISBN " + isbn + " ya está disponible.");
         }
+
         // Buscar el préstamo activo correspondiente
         Prestamo prestamoEncontrado = null;
         for (Prestamo p : prestamosActivos) {
@@ -47,10 +49,14 @@ public class LoanManager {
                 break;
             }
         }
+        //Valida si no encontro un prestamo
         if (prestamoEncontrado == null) {
             throw new LibraryException("No se encontró ningún préstamo activo para el ISBN: " + isbn);
         }
-
+        //Validad si el usuario que esta devolviedo es el mismo
+        if (!prestamoEncontrado.getUsuario().getUsuario().equals(usuario.getUsuario())){
+            throw new LibraryException("Este libro fue prestado por otro usuario. No puedes devolverlo.");
+        }
         System.out.println("El libro estaba prestado por: " + prestamoEncontrado.getUsuario().getNombre());
 
         // Eliminar el préstamo y liberar el libro
