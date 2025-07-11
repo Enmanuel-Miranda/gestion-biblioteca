@@ -1,9 +1,8 @@
 package Project;
 
 import Models.Book;
-import Repositories.ArrayBookRepository;
-import Repositories.ArrayListBookRepository;
-import Repositories.BookRepository;
+import Models.User;
+import Repositories.*;
 import services.LoanManager;
 import exceptions.LibraryException;
 
@@ -11,27 +10,21 @@ import java.util.List;
 import java.util.Scanner;
 
 public class App {
-	
+
     public static void main(String[] args) {
         // implementacion del repositorio: son 2
         //BookRepository bookRepository = new ArrayListBookRepository(); 
-        BookRepository bookRepository = new ArrayBookRepository(); 
+        BookRepository bookRepository = new ArrayBookRepository();
+        UserRepository userRepository = new ArrayListUserRepository();
+
 
         LoanManager loanManager = new LoanManager(bookRepository);
         Scanner scanner = new Scanner(System.in);
 
+        //añadimos unos libros y usuarios
+        insertarDatos(bookRepository,userRepository);
+
         System.out.println("Gestión de Biblioteca ***************************************");
-
-        //añadimos unos libros
-        try {
-            bookRepository.addBook(new Book("978-0321356680", "Clean Code", "Robert C. Martin", 2008));
-            bookRepository.addBook(new Book("978-0134685991", "Effective Java", "Joshua Bloch", 2018));
-            bookRepository.addBook(new Book("978-123456789X", "The Pragmatic Programmer", "Andy Hunt", 1999));
-            System.out.println("Libros iniciales cargados.");
-        } catch (LibraryException e) {
-            System.err.println("Error al cargar libros iniciales: " + e.getMessage());
-        }
-
         int option;
         do {
             System.out.println("\n--- Menú Principal ---");
@@ -129,4 +122,23 @@ public class App {
         }
         System.out.println("Total de libros: " + allBooks.size());
     }
+
+    public static void insertarDatos(BookRepository bookRepository, UserRepository userRepository){
+        try {
+            bookRepository.addBook(new Book("978-0321356680", "Clean Code", "Robert C. Martin", 2008));
+            bookRepository.addBook(new Book("978-0134685991", "Effective Java", "Joshua Bloch", 2018));
+            bookRepository.addBook(new Book("978-123456789X", "The Pragmatic Programmer", "Andy Hunt", 1999));
+            System.out.println("Libros iniciales cargados.");
+        } catch (LibraryException e) {
+            System.err.println("Error al cargar libros iniciales: " + e.getMessage());
+        }
+        try {
+            userRepository.addUser(new User("Fernando","fgv"));
+            userRepository.addUser(new User("Marce","moci"));
+            System.out.println("Usuarios Agregados");
+        } catch (LibraryException e) {
+            System.err.println("Error al cargar Usuarios iniciales: " + e.getMessage());
+        }
+    }
+
 }
