@@ -4,6 +4,10 @@ import Models.Book;
 import Repositories.ArrayBookRepository;
 import Repositories.ArrayListBookRepository;
 import Repositories.BookRepository;
+import filters.AuthorFilter;
+import filters.AvailabilityFilter;
+import filters.BookFilter;
+import filters.YearFilter;
 import services.LoanManager;
 import exceptions.LibraryException;
 
@@ -11,6 +15,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class App {
+
+    private static Scanner scanner = new Scanner(System.in);
 	
     public static void main(String[] args) {
         // implementacion del repositorio: son 2
@@ -18,7 +24,6 @@ public class App {
         BookRepository bookRepository = new ArrayBookRepository(); 
 
         LoanManager loanManager = new LoanManager(bookRepository);
-        Scanner scanner = new Scanner(System.in);
 
         System.out.println("Gestión de Biblioteca ***************************************");
 
@@ -40,6 +45,7 @@ public class App {
             System.out.println("3. Devolver un libro");
             System.out.println("4. Añadir un nuevo libro");
             System.out.println("5. Eliminar un libro");
+            System.out.println("7. Búsqueda personalizada");
             System.out.println("0. Salir");
             System.out.print("Seleccione una opción: ");
 
@@ -96,6 +102,8 @@ public class App {
                             System.err.println("Error al eliminar libro: " + e.getMessage());
                         }
                         break;
+                    case 7:
+                        searchWithFilter(bookRepository);
                     case 0:
                         System.out.println("Saliendo del sistema. ¡Hasta pronto!");
                         break;
@@ -121,12 +129,77 @@ public class App {
             // Itera sobre cada libro y accede a sus atributos con los getters
             for (Book book : allBooks) {
                 System.out.println("ISBN: " + book.getIsbn() +
-                                   ", Título: " + book.getTitulo() +
-                                   ", Autor: " + book.getAutor() +
-                                   ", Año: " + book.getAnioPublicacion() +
-                                   ", Disponibilidad: " + (book.getDisponibilidad() ? "Disponible" : "Prestado"));
+                        " | Título: " + book.getTitulo() +
+                        " | Autor: " + book.getAutor() +
+                        " | Año: " + book.getAnioPublicacion() +
+                        " | Disponible: " + (book.getDisponibilidad() ? "Sí" : "No"));
             }
         }
         System.out.println("Total de libros: " + allBooks.size());
+    }
+    private static void searchWithFilter(BookRepository selectedRepo) {
+        System.out.println("=== Búsqueda personalizada ===");
+        System.out.println("1. Buscar por autor");
+        System.out.println("2. Buscar por año de publicación");
+        System.out.println("3. Buscar por disponibilidad");
+
+        int choice = readInt("Seleccione el tipo de búsqueda:");
+        BookFilter filter = null;
+
+        switch (choice) {
+            case 1 -> {
+                String author = readString("Ingrese el nombre o parte del nombre del autor:");
+                filter = new AuthorFilter(author);
+            }
+            case 2 -> {
+                int year = readInt("Ingrese el año de publicación:");
+                filter = new YearFilter(year);
+            }
+            case 3 -> {
+                System.out.println("¿Qué desea buscar?");
+                System.out.println("1. Libros disponibles");
+                System.out.println("2. Libros prestados");
+                int dispChoice = readInt("Opción:");
+                filter = new AvailabilityFilter(dispChoice == 1);
+            }
+            default -> {
+                System.out.println("Opción inválida.");
+                return;
+            }
+        }
+
+        System.out.println("=== Resultados ===");
+        boolean found = false;
+        for (Book book : selectedRepo.getAllBooks()) {
+            if (filter.matches(book)) {
+                System.out.println("ISBN: " + book.getIsbn() +
+                        " | Título: " + book.getTitulo() +
+                        " | Autor: " + book.getAutor() +
+                        " | Año: " + book.getAnioPublicacion() +
+                        " | Disponible: " + (book.getDisponibilidad() ? "Sí" : "No"));
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No se encontraron libros que coincidan con el criterio.");
+        }
+    }
+
+    private static String readString(String prompt) {
+        System.out.print(prompt + " ");
+        return scanner.nextLine().trim();
+    }
+
+    private static int readInt(String prompt) {
+        System.out.print(prompt + " ");
+        while (!scanner.hasNextInt()) {
+            System.out.println("Debe ingresar un número.");
+            System.out.print(prompt + " ");
+            scanner.next();
+        }
+        int number = scanner.nextInt();
+        scanner.nextLine();
+        return number;
     }
 }
