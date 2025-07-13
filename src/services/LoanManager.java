@@ -1,5 +1,7 @@
 package services;
 
+import java.time.LocalDateTime;
+
 import Models.Book;
 import Models.Prestamo;
 import Models.User;
@@ -18,6 +20,15 @@ public class LoanManager {
         this.bookRepository = bookRepository;
         this.prestamosActivos = new ArrayList<>();
     }
+    private HistorialPrestamo historialPrestamo;
+    
+    //Constructor
+    public LoanManager(BookRepository bookRepository, HistorialPrestamo historialPrestamo) {
+		super();
+		this.bookRepository = bookRepository;
+        this.prestamosActivos = new ArrayList<>();
+		this.historialPrestamo = historialPrestamo;
+	}
 
     public void borrowBook(String isbn, User usuario) throws LibraryException {
         Book book = bookRepository.findBook(isbn);
@@ -31,10 +42,16 @@ public class LoanManager {
         prestamosActivos.add(nuevoPrestamo);
 
         book.setDisponibilidad(false);
+        
+        String isbnBook = book.getIsbn();
+        String tituloBook = book.getTitulo();
+        LocalDateTime fecha_horaBook = LocalDateTime.now();
+        
+        historialPrestamo.registroPrestamo(isbnBook, tituloBook, fecha_horaBook);
+        
     }
 
     public void returnBook(String isbn, User usuario) throws LibraryException {
-
         Book book = bookRepository.findBook(isbn);
 
         if (book.getDisponibilidad()) {

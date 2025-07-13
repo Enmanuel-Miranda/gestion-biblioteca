@@ -82,7 +82,6 @@ public class ArrayBookRepository implements BookRepository {
         return allBooks;
     }
 
-    // Método para buscar libros por autor usando Streams.
     public List<Book> getBooksByAuthor(String author) {
         return Arrays.stream(books, 0, count)
                      .filter(book -> book.getAutor().equalsIgnoreCase(author))

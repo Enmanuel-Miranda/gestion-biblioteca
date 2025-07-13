@@ -7,6 +7,10 @@ import filters.AuthorFilter;
 import filters.AvailabilityFilter;
 import filters.BookFilter;
 import filters.YearFilter;
+import Models.RegistrarPrestamo;
+import Repositories.ArrayBookRepository;
+import Repositories.BookRepository;
+import services.HistorialPrestamo;
 import services.LoanManager;
 import exceptions.LibraryException;
 
@@ -16,12 +20,17 @@ import java.util.Scanner;
 public class App {
 
     private static Scanner scanner = new Scanner(System.in);
+    private static HistorialPrestamo historialManager = new HistorialPrestamo();
+
     public static void main(String[] args) {
-        //Instanciar
-        Scanner sc = new Scanner(System.in);
-        UserRepository userRepository = new ArrayListUserRepository();
+        // implementacion del repositorio: son 2
+        //BookRepository bookRepository = new ArrayListBookRepository(); 
         BookRepository bookRepository = new ArrayBookRepository();
-        LoanManager loanManager = new LoanManager(bookRepository);
+
+         // ¡Aquí está el cambio! Ya no se pasa un repositorio
+        LoanManager loanManager = new LoanManager(bookRepository, historialManager);
+        UserRepository userRepository = new ArrayListUserRepository();
+        
         //Carga de Datos
         insertarDatos(bookRepository, userRepository);
         //Variables
@@ -34,15 +43,15 @@ public class App {
             System.out.println("1.- Iniciar sesion");
             System.out.println("2.- Crear Sesion");
             System.out.println("3.- Cerrar Programa");
-            opc = Integer.parseInt(sc.nextLine());
+            opc = readInt("Seleccione una opción: ");
             switch (opc) {
                 case 1 -> {
-                    usuarioIndentificado = iniciarSesion(sc, userRepository);
+                    usuarioIndentificado = iniciarSesion(scanner, userRepository);
                     if (usuarioIndentificado != null) {
-                        sistemaBiblioteca(sc, bookRepository, loanManager, usuarioIndentificado);
+                        sistemaBiblioteca(scanner, bookRepository, loanManager, usuarioIndentificado);
                     }
                 }
-                case 2 -> registrase(sc, userRepository);
+                case 2 -> registrase(scanner, userRepository);
                 case 3 -> {
                     bandera = false;
                     System.out.println("Programa cerrado.");
@@ -53,7 +62,7 @@ public class App {
                 }
             }
         }
-        sc.close();
+        scanner.close();
     }
 
     private static void displayAllBooks(BookRepository bookRepository, LoanManager loanManager) {
@@ -100,11 +109,10 @@ public class App {
             System.err.println("Error al cargar Usuarios iniciales: " + e.getMessage());
         }
     }
-    public static User iniciarSesion (Scanner sc, UserRepository userRepository){
+    public static User iniciarSesion (Scanner scanner, UserRepository userRepository){
 
         User usuarioActivo;
-        System.out.print("Ingrese el nombre de usuario: ");
-        String name = sc.nextLine().trim();
+        String name = readString("Ingrese el nombre de usuario: ");
         try {
             usuarioActivo = userRepository.findUser(name);
             System.out.println("Usuario encontrado " + usuarioActivo.getNombre());
@@ -114,11 +122,11 @@ public class App {
         }
         return null; // Si no cumple
     }
-    public static void registrase(Scanner sc, UserRepository userRepository){
-        System.out.print("Ingrese un nombre: ");
-        String nombre = sc.nextLine();
-        System.out.println("Ingrese su nick name");
-        String name = sc.nextLine();
+    public static void registrase(Scanner scanner, UserRepository userRepository){
+
+
+        String nombre = readString("Ingrese su nombre: ");
+        String name = readString("Ingrese su nickname: ");
         try {
             userRepository.addUser(new User(nombre,name));
             System.out.println("Usuario creado correctamente ");
@@ -126,7 +134,7 @@ public class App {
             System.err.println("Error al registrar un usuario: "+e.getMessage());
         }
     }
-    public static void sistemaBiblioteca(Scanner sc,BookRepository bookRepository, LoanManager loanManager, User usuarioIndentificado) {
+    public static void sistemaBiblioteca(Scanner scanner,BookRepository bookRepository, LoanManager loanManager, User usuarioIndentificado) {
 
         System.out.println("Gestión de Biblioteca ***************************************");
         int option;
@@ -137,20 +145,20 @@ public class App {
             System.out.println("3. Devolver un libro");
             System.out.println("4. Añadir un nuevo libro");
             System.out.println("5. Eliminar un libro");
+            System.out.println("6. Ver historial de prestamos"); //se añadio esto de aqui
             System.out.println("7. Búsqueda personalizada");
             System.out.println("0. Cerrar Sesion");
             System.out.print("Seleccione una opción: ");
 
             try {
-                option = Integer.parseInt(sc.nextLine());
+                option = readInt("Ingrese su opción: ");
 
                 switch (option) {
                     case 1:
                         displayAllBooks(bookRepository, loanManager);
                         break;
                     case 2:
-                        System.out.print("Ingrese el ISBN del libro a prestar: ");
-                        String isbnToBorrow = sc.nextLine();
+                        String isbnToBorrow = readString("Ingrese el ISBN del libro a prestar: ");
                         try {
                             loanManager.borrowBook(isbnToBorrow, usuarioIndentificado);
                             System.out.println("Libro con ISBN " + isbnToBorrow + " prestado exitosamente.");
@@ -159,8 +167,7 @@ public class App {
                         }
                         break;
                     case 3:
-                        System.out.print("Ingrese el ISBN del libro a devolver: ");
-                        String isbnToReturn = sc.nextLine();
+                        String isbnToReturn = readString("Ingrese el ISBN del libro a devolver: ");
                         try {
                             loanManager.returnBook(isbnToReturn,usuarioIndentificado);
                             System.out.println("Libro con ISBN " + isbnToReturn + " devuelto exitosamente.");
@@ -169,14 +176,10 @@ public class App {
                         }
                         break;
                     case 4:
-                        System.out.print("Ingrese ISBN: ");
-                        String newIsbn = sc.nextLine();
-                        System.out.print("Ingrese Título: ");
-                        String newTitulo = sc.nextLine();
-                        System.out.print("Ingrese Autor: ");
-                        String newAutor = sc.nextLine();
-                        System.out.print("Ingrese Año de Publicación: ");
-                        int newAnio = Integer.parseInt(sc.nextLine());
+                        String newIsbn = readString("Ingrese ISBN: ");
+                        String newTitulo = readString("Ingrese Título: ");
+                        String newAutor = readString("Ingrese Autor: ");
+                        int newAnio = readInt("Ingrese Año de Publicación: ");
                         try {
                             bookRepository.addBook(new Book(newIsbn, newTitulo, newAutor, newAnio));
                             System.out.println("Libro añadido exitosamente.");
@@ -185,13 +188,24 @@ public class App {
                         }
                         break;
                     case 5:
-                        System.out.print("Ingrese el ISBN del libro a eliminar: ");
-                        String isbnToRemove = sc.nextLine();
+                        String isbnToRemove = readString("ISBN del libro a eliminar: ");
                         try {
                             bookRepository.removeBook(isbnToRemove);
                             System.out.println("Libro con ISBN " + isbnToRemove + " eliminado exitosamente.");
                         } catch (LibraryException e) {
                             System.err.println("Error al eliminar libro: " + e.getMessage());
+                        }
+                        break;
+                    case 6: //ver el historial
+                        System.out.print("Historial de prstamos");
+                        List<RegistrarPrestamo> prestamoRegistrado = historialManager.ObtenerPrestamos();
+                        
+                        if(prestamoRegistrado.isEmpty()){
+                        System.out.println("No hay prestamos");
+                        }else {
+                        for (RegistrarPrestamo rp : prestamoRegistrado ){
+                        	System.out.println(rp);
+                        }
                         }
                         break;
                     case 7:
