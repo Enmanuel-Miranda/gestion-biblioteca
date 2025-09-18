@@ -6,3 +6,8 @@
 target/
 bin/
 .settings/
+
+#Ignorar archivos de Eclipse
+.classpath
+.project
+.settings/
